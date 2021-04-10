@@ -1,8 +1,41 @@
-import React from 'react'
-import { NotesAppBar } from './NotesAppBar'
+import React, { useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { activeNote, startDeleting } from '../../actions/notes';
+import { useForm } from '../../hooks/useForm';
+import { NotesAppBar } from './NotesAppBar';
 
 export const NoteScreen = () => {
+    
+
+    const dispatch = useDispatch();
+
+    const { active:note } = useSelector(state => state.notes)
+    const [ formValues, handleInputChange, reset ] = useForm( note );
+    const { body, title, id } = formValues;
+
+    const activeId = useRef( note.id );
+    useEffect(() => {
+
+        if( note.id !== activeId.current ) {
+            reset( note );
+            activeId.current = note.id;
+        }
+
+    }, [note, reset])
+    
+    useEffect( () => {
+
+        dispatch( activeNote( formValues.id, { ...formValues } ) );
+
+
+    }, [formValues, dispatch])
+
+    const handleDelete = () => {
+        dispatch( startDeleting( id ) );
+    }
+
     return (
+        
         <div className="notes__main-content">
             
 
@@ -15,22 +48,38 @@ export const NoteScreen = () => {
                     placeholder="Ponle título"
                     className="notes__title-input"
                     autoComplete="off"
+                    name="title"
+                    value={ title }
+                    onChange={ handleInputChange }
                 />
 
                 <textarea
                     placeholder="¿Qué ha pasado hoy?"
                     className="notes__textarea"
+                    name="body"
+                    value={ body }
+                    onChange={ handleInputChange }
                 >
                 </textarea>
 
-                <div className="notes__image">
-                    <img
-                        src="https://images.unsplash.com/photo-1465328610639-388f315eb31b?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1500&q=80"
-                        alt="img"
-
-                    ></img>
-                </div>
+                {
+                    (note.url)
+                    &&(
+                        <div className="notes__image">
+                            <img
+                                src={ note.url }
+                                alt="img"
+                            ></img>
+                        </div>
+                    )
+                }
             </div>
+            <button 
+                className="btn btn-danger"
+                onClick={ handleDelete }
+
+            >
+                Borrar</button>
         </div>
     )
 }
